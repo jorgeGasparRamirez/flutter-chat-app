@@ -1,5 +1,6 @@
-import 'package:chat/models/usuarios.dart';
 import 'package:flutter/material.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:chat/models/usuarios.dart';
 
 class UsuariosPage extends StatefulWidget {
   const UsuariosPage({super.key});
@@ -14,6 +15,9 @@ class _UsuariosPageState extends State<UsuariosPage> {
     Usuario(online: false, email: 'pedro@nauta.cu', name: 'Pedro', uid: '2'),
     Usuario(online: true, email: 'juana@nauta.cu', name: 'Juana', uid: '3'),
   ];
+
+  RefreshController _refreshController =
+      RefreshController(initialRefresh: false);
 
   @override
   Widget build(BuildContext context) {
@@ -40,12 +44,20 @@ class _UsuariosPageState extends State<UsuariosPage> {
           onPressed: () {},
         ),
       ),
-      body: ListView.separated(
-          physics: const BouncingScrollPhysics(),
-          itemBuilder: (_, i) => _usuarioListTitle(usuario[i]),
-          separatorBuilder: (_, i) => const Divider(),
-          itemCount: usuario.length),
+      body: SmartRefresher(
+        controller: _refreshController,
+        onRefresh: _cargarUsuarios,
+        child: _listViewUsuarios(),
+      ),
     );
+  }
+
+  ListView _listViewUsuarios() {
+    return ListView.separated(
+        physics: const BouncingScrollPhysics(),
+        itemBuilder: (_, i) => _usuarioListTitle(usuario[i]),
+        separatorBuilder: (_, i) => const Divider(),
+        itemCount: usuario.length);
   }
 
   ListTile _usuarioListTitle(Usuario user) {
@@ -62,5 +74,11 @@ class _UsuariosPageState extends State<UsuariosPage> {
               color: user.online ? Colors.green[300] : Colors.red,
               borderRadius: BorderRadius.circular(100))),
     );
+  }
+
+  _cargarUsuarios() async {
+    await Future.delayed(const Duration(milliseconds: 1000));
+    // if failed,use refreshFailed()
+    _refreshController.refreshCompleted();
   }
 }
